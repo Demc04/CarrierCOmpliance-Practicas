@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de disponibilidad — Prototipo local</title>
+<style>
+:root { color-scheme: light; --bg:#f4f6f8; --card:#fff; --ink:#18212f; --muted:#647184; --line:#e1e6ec; --blue:#2457c5; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
+header { background:#15243a; color:white; padding:24px clamp(16px,4vw,48px); }
+header .eyebrow { font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.75; font-weight:700; }
+header h1 { margin:8px 0 6px; font-size:clamp(24px,4vw,34px); }
+header p { margin:0; color:#d6deea; max-width:760px; line-height:1.5; }
+main { max-width:1150px; margin:24px auto; padding:0 16px 40px; }
+.notice { border:1px solid #ead7a1; background:#fff9e8; padding:12px 14px; border-radius:12px; color:#634b13; font-size:13px; line-height:1.45; margin-bottom:18px; }
+.stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:18px; }
+.stat,.panel,.agent { background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:0 2px 8px #17263b08; }
+.stat { padding:16px; }
+.stat .label { font-size:12px; color:var(--muted); font-weight:650; }
+.stat .num { font-size:28px; font-weight:750; margin-top:5px; }
+.layout { display:grid; grid-template-columns:320px 1fr; gap:16px; align-items:start; }
+.panel { padding:18px; }
+h2 { margin:0 0 14px; font-size:18px; }
+label { display:block; font-size:13px; color:#465367; font-weight:650; margin:12px 0 6px; }
+input,select,button { font:inherit; }
+input,select { width:100%; padding:11px 12px; border:1px solid #cfd7e1; border-radius:9px; background:white; color:var(--ink); }
+button { cursor:pointer; border:0; border-radius:9px; padding:11px 13px; font-weight:700; }
+.primary { background:var(--blue); color:white; width:100%; margin-top:14px; }
+.secondary { background:#edf1f7; color:#26364d; }
+button:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid #8db4ff; outline-offset:2px; }
+.helper { color:var(--muted); font-size:12px; line-height:1.45; margin-top:10px; }
+.toolbar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.toolbar select { width:auto; min-width:165px; }
+.cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.agent { padding:15px; min-width:0; }
+.agent-top { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+.agent-name { font-weight:750; font-size:16px; overflow-wrap:anywhere; }
+.badge { display:inline-flex; align-items:center; gap:6px; border-radius:99px; padding:5px 9px; font-size:11px; font-weight:750; white-space:nowrap; }
+.dot { width:7px; height:7px; border-radius:50%; display:inline-block; background:currentColor; }
+.working { color:#176647; background:#e2f6ec; }
+.break { color:#8a5b08; background:#fff1ce; }
+.lunch { color:#945026; background:#ffeadf; }
+.offline { color:#5c6675; background:#edf0f4; }
+.agent .meta { font-size:12px; color:var(--muted); margin:9px 0 12px; }
+.agent select { font-size:13px; padding:9px; }
+.agent .remove { background:transparent; color:#8b3440; padding:6px 0 0; font-size:12px; }
+.empty { grid-column:1/-1; padding:28px; text-align:center; border:1px dashed #cbd4df; border-radius:12px; color:var(--muted); }
+footer { color:var(--muted); font-size:12px; line-height:1.5; margin-top:18px; }
+@media(max-width:780px) { .stats{grid-template-columns:repeat(2,minmax(0,1fr));} .layout{grid-template-columns:1fr;} .cards{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Prototipo académico · Uso local</div>
+  <h1>Panel de disponibilidad de agentes</h1>
+  <p>Una vista sencilla para consultar la disponibilidad de agentes por queue y apoyar la cobertura de tickets durante descansos y almuerzos.</p>
+</header>
+<main>
+  <div class="notice"><strong>Demo sin conexión corporativa.</strong> Los datos se guardan únicamente en este navegador. No se conecta a Jira, Slack ni a sistemas de Lean Solutions Group. Usa nombres ficticios durante la presentación.</div>
+  <section class="stats" aria-label="Resumen de estados">
+    <div class="stat"><div class="label">Agentes en total</div><div class="num" id="total">0</div></div>
+    <div class="stat"><div class="label">Trabajando / disponibles</div><div class="num" id="workingCount">0</div></div>
+    <div class="stat"><div class="label">En descanso</div><div class="num" id="breakCount">0</div></div>
+    <div class="stat"><div class="label">En almuerzo</div><div class="num" id="lunchCount">0</div></div>
+  </section>
+  <div class="layout">
+    <section class="panel">
+      <h2>Registrar agente de prueba</h2>
+      <form id="addForm">
+        <label for="agentName">Nombre de demostración</label>
+        <input id="agentName" maxlength="50" placeholder="Ej. Agente 04" required>
+        <label for="agentQueue">Queue del agente</label>
+        <select id="agentQueue" required>
+          <option value="Audits">Audits</option>
+          <option value="LoadRule">LoadRule</option>
+          <option value="Insurance">Insurance</option>
+        </select>
+        <label for="initialStatus">Estado inicial</label>
+        <select id="initialStatus">
+          <option value="working">Trabajando / disponible</option>
+          <option value="break">En descanso</option>
+          <option value="lunch">En almuerzo</option>
+          <option value="offline">Fuera de línea</option>
+        </select>
+        <button class="primary" type="submit">+ Agregar agente</button>
+      </form>
+      <p class="helper">Puedes agregar perfiles ficticios, asignarlos a Audits, LoadRule o Insurance y cambiar sus estados desde las tarjetas.</p>
+      <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+      <h2>Prueba rápida</h2>
+      <button class="secondary" id="resetDemo" type="button">Restaurar equipo de ejemplo</button>
+      <p class="helper">Restaurar reemplaza los datos de demostración guardados en este navegador.</p>
+    </section>
+    <section class="panel">
+      <div class="toolbar">
+        <h2 style="margin:0">Estado del equipo</h2>
+        <select id="queueFilter" aria-label="Filtrar por queue">
+          <option value="all">Todas las queues</option>
+          <option value="Audits">Audits</option>
+          <option value="LoadRule">LoadRule</option>
+          <option value="Insurance">Insurance</option>
+        </select>
+        <select id="filter" aria-label="Filtrar agentes por estado">
+          <option value="all">Todos los estados</option>
+          <option value="working">Trabajando / disponible</option>
+          <option value="break">En descanso</option>
+          <option value="lunch">En almuerzo</option>
+          <option value="offline">Fuera de línea</option>
+        </select>
+      </div>
+      <div id="cards" class="cards" aria-live="polite"></div>
+    </section>
+  </div>
+  <footer>Prototipo local para validar el concepto y recoger comentarios. No asigna tickets, no registra tiempos oficiales y no sincroniza datos entre dispositivos. La adopción real requeriría revisión y autorización de la empresa, además de una fuente de datos compartida.</footer>
+</main>
+<script>
+const KEY = "demoAgentAvailability_v1";
+const labels = {working:"Trabajando / disponible",break:"En descanso",lunch:"En almuerzo",offline:"Fuera de línea"};
+const statusClass = {working:"working",break:"break",lunch:"lunch",offline:"offline"};
+const seed = [
+ {id:"a1",name:"Agente 01",queue:"Audits",status:"working",updated:new Date().toISOString()},
+ {id:"a2",name:"Agente 02",queue:"LoadRule",status:"break",updated:new Date().toISOString()},
+ {id:"a3",name:"Agente 03",queue:"Insurance",status:"working",updated:new Date().toISOString()},
+ {id:"a4",name:"Agente 04",queue:"Audits",status:"lunch",updated:new Date().toISOString()},
+ {id:"a5",name:"Agente 05",queue:"Insurance",status:"offline",updated:new Date().toISOString()}
+];
+let agents;
+try { const saved = JSON.parse(localStorage.getItem(KEY)); agents = Array.isArray(saved) ? saved : seed; } catch { agents = seed; }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(agents)); } catch {} }
+function timeLabel(iso){ const d = new Date(iso); return Number.isNaN(d.getTime()) ? "Hora no disponible" : "Actualizado " + d.toLocaleTimeString("es-CO",{hour:"2-digit",minute:"2-digit"}); }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function render(){
+ const counts = {working:0,break:0,lunch:0,offline:0};
+ agents.forEach(a=>{ if(counts[a.status] !== undefined) counts[a.status]++; });
+ document.getElementById("total").textContent = agents.length;
+ document.getElementById("workingCount").textContent = counts.working;
+ document.getElementById("breakCount").textContent = counts.break;
+ document.getElementById("lunchCount").textContent = counts.lunch;
+ const filter = document.getElementById("filter").value;
+ const queueFilter = document.getElementById("queueFilter").value;
+ const shown = agents.filter(a=>(filter==="all" || a.status===filter) && (queueFilter==="all" || a.queue===queueFilter));
+ const cards = document.getElementById("cards");
+ if(!shown.length){ cards.innerHTML='<div class="empty">No hay agentes en este filtro.</div>'; return; }
+ cards.innerHTML = shown.map(a=>`
+  <article class="agent">
+   <div class="agent-top">
+    <div><div class="agent-name">${escapeHtml(a.name)}</div><div class="meta" style="margin:4px 0 0">Queue: <strong>${escapeHtml(a.queue || "Sin queue")}</strong></div></div>
+    <span class="badge ${statusClass[a.status] || "offline"}"><span class="dot"></span>${escapeHtml(labels[a.status] || labels.offline)}</span>
+   </div>
+   <div class="meta">${timeLabel(a.updated)}</div>
+   <label for="status-${escapeHtml(a.id)}">Cambiar estado</label>
+   <select id="status-${escapeHtml(a.id)}" data-id="${escapeHtml(a.id)}" class="statusSelect">
+    ${Object.entries(labels).map(([key,label])=>`<option value="${key}" ${a.status===key?"selected":""}>${label}</option>`).join("")}
+   </select>
+   <button class="remove" type="button" data-remove="${escapeHtml(a.id)}">Quitar de la demo</button>
+  </article>`).join("");
+ document.querySelectorAll(".statusSelect").forEach(el=>el.addEventListener("change",e=>{
+  const a=agents.find(x=>x.id===e.target.dataset.id); if(a){a.status=e.target.value;a.updated=new Date().toISOString();save();render();}
+ }));
+ document.querySelectorAll("[data-remove]").forEach(el=>el.addEventListener("click",e=>{
+  const id=e.currentTarget.dataset.remove; agents=agents.filter(a=>a.id!==id);save();render();
+ }));
+}
+document.getElementById("addForm").addEventListener("submit",e=>{
+ e.preventDefault(); const name=document.getElementById("agentName").value.trim(); if(!name)return;
+ if(agents.some(a=>a.name.toLowerCase()===name.toLowerCase())){alert("Ya existe un agente con ese nombre en la demo.");return;}
+ agents.push({id:"a"+Date.now()+Math.random().toString(16).slice(2,6),name,queue:document.getElementById("agentQueue").value,status:document.getElementById("initialStatus").value,updated:new Date().toISOString()});
+ save(); document.getElementById("agentName").value=""; document.getElementById("filter").value="all"; document.getElementById("queueFilter").value="all"; render();
+});
+document.getElementById("filter").addEventListener("change",render);
+document.getElementById("resetDemo").addEventListener("click",()=>{
+ if(confirm("¿Restaurar el equipo de ejemplo? Se reemplazará la lista actual.")){
+  agents=seed.map(a=>({...a,updated:new Date().toISOString()}));save();document.getElementById("filter").value="all";document.getElementById("queueFilter").value="all";render();
+ }
+});
+save(); render();
+</script>
+</body>
+</html>
