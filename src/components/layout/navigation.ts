@@ -11,5 +11,5 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { id: 'panel', label: 'Panel general', icon: LayoutDashboard },
   { id: 'queues', label: 'Vista por queue', icon: Layers },
   { id: 'coverage', label: 'Cobertura de tickets', icon: Headset },
-  { id: 'settings', label: 'Datos de la demo', icon: Settings2 },
+  { id: 'demo-data', label: 'Datos de la demo', icon: Settings2 },
 ];

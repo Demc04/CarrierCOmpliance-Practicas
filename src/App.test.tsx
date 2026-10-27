@@ -150,7 +150,7 @@ describe('Panel de disponibilidad', () => {
 
   it('restaura los datos de ejemplo tras confirmar', async () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, agents: [] }));
-    window.location.hash = '/settings';
+    window.location.hash = 'demo-data';
     const { user } = renderApp();
     await screen.findByRole('heading', { name: 'Datos de la demo', level: 1 });
     await user.click(screen.getByRole('button', { name: /Restaurar datos de ejemplo/ }));
@@ -160,7 +160,7 @@ describe('Panel de disponibilidad', () => {
   });
 
   it('la vista por queue y la cobertura reflejan los cambios', async () => {
-    window.location.hash = '/queues';
+    window.location.hash = 'queues';
     const { user } = renderApp();
     const audits = await screen.findByRole('region', { name: 'Audits' });
     expect(within(audits).getByText('disponibles / total').previousSibling?.textContent).toMatch(/2\s*\/\s*3/);

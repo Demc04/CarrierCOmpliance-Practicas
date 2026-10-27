@@ -164,7 +164,7 @@ function AvailabilityApp({ repository }: { repository: AgentRepository }) {
               )}
               {view === 'queues' && <QueueOverview agents={agents} onStatusChange={handleStatusChange} />}
               {view === 'coverage' && <TicketCoverage agents={agents} />}
-              {view === 'settings' && (
+              {view === 'demo-data' && (
                 <DemoSettings agentCount={agents.length} onRequestReset={() => setConfirmReset(true)} />
               )}
             </>

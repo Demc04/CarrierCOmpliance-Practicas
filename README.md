@@ -55,7 +55,7 @@ src/
     agentRepository.ts        Contrato de persistencia (interfaz)
     localStorageAgentRepository.ts  Implementación local con recuperación de datos dañados
   hooks/useAgents.ts          Estado de agentes (usa solo el contrato del repositorio)
-  hooks/useHashView.ts        Navegación por hash (#/panel, #/queues, #/coverage, #/settings)
+  hooks/useHashView.ts        Navegación por hash (#panel, #queues, #coverage, #demo-data)
   components/
     layout/                   Sidebar, menú móvil, encabezado, aviso de demo
     dashboard/                Dashboard, StatisticsCards, AgentForm, AgentList, AgentCard,

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export type ViewId = 'panel' | 'queues' | 'coverage' | 'settings';
+export type ViewId = 'panel' | 'queues' | 'coverage' | 'demo-data';
 
-const VIEW_IDS: readonly ViewId[] = ['panel', 'queues', 'coverage', 'settings'];
+const VIEW_IDS: readonly ViewId[] = ['panel', 'queues', 'coverage', 'demo-data'];
 
 function readView(): ViewId {
   const hash = window.location.hash.replace(/^#\/?/, '');
@@ -20,7 +20,7 @@ export function useHashView(): [ViewId, (view: ViewId) => void] {
   }, []);
 
   const navigate = useCallback((next: ViewId) => {
-    if (readView() !== next) window.location.hash = `/${next}`;
+    if (readView() !== next) window.location.hash = next;
     setView(next);
   }, []);
 

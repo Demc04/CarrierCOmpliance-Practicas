@@ -31,7 +31,7 @@ export function NavLinks({ current, onNavigate }: Pick<SidebarProps, 'current' |
         return (
           <li key={id}>
             <a
-              href={`#/${id}`}
+              href={`#${id}`}
               onClick={(event) => {
                 event.preventDefault();
                 onNavigate(id);
